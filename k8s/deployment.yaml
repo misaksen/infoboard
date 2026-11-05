@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infoboard
+  labels:
+    app: infoboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: infoboard
+  template:
+    metadata:
+      labels:
+        app: infoboard
+    spec:
+      containers:
+      - name: infoboard
+        image: infoboard:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: PORT
+          value: "3000"
+        - name: ADMIN_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: infoboard-config
+              key: admin.username
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: infoboard-secret
+              key: admin-password
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: infoboard-secret
+              key: jwt-secret
+        - name: DB_PATH
+          value: /data/infoboard.db
+        - name: UPLOAD_DIR
+          value: /data/uploads
+        - name: POST_CACHE_TTL
+          value: "300000"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/public/health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/public/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: infoboard-data

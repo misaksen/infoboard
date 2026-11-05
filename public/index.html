@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infoboard</title>
+  <link rel="stylesheet" href="css/display.css">
+</head>
+<body>
+  <div class="container">
+    <div class="infoboard-wrapper">
+      <div class="post-display" id="postDisplay">
+        <div class="loading">Loading posts...</div>
+      </div>
+      
+      <div class="controls" id="controls" style="display: none;">
+        <button class="nav-btn prev-btn" id="prevBtn" aria-label="Previous post">
+          <span>❮</span>
+        </button>
+        <div class="post-indicator">
+          <span id="currentPost">-</span> / <span id="totalPosts">-</span>
+        </div>
+        <button class="nav-btn next-btn" id="nextBtn" aria-label="Next post">
+          <span>❯</span>
+        </button>
+        <div class="countdown" id="countdown" style="display: none;">
+          Next post in <span id="countdownValue">-</span>s
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/display.js"></script>
+</body>
+</html>

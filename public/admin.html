@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infoboard Admin</title>
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="admin-container">
+    <header class="admin-header">
+      <h1>Infoboard Admin</h1>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </header>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="page">
+      <div class="login-box">
+        <h2>Admin Login</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <div class="error-message" id="loginError"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="page" style="display: none;">
+      <div class="dashboard">
+        <div class="sidebar">
+          <nav class="nav">
+            <button class="nav-item active" data-section="posts">Posts</button>
+            <button class="nav-item" data-section="create">Create Post</button>
+          </nav>
+        </div>
+
+        <div class="main-content">
+          <!-- Posts Section -->
+          <section id="postsSection" class="section active">
+            <h2>Posts</h2>
+            <div class="filters">
+              <input type="text" id="searchInput" placeholder="Search posts..." class="search-input">
+              <button class="btn btn-secondary" id="refreshBtn">Refresh</button>
+            </div>
+            <div class="posts-list" id="postsList">
+              <div class="loading">Loading posts...</div>
+            </div>
+            <div class="pagination" id="pagination"></div>
+          </section>
+
+          <!-- Create Post Section -->
+          <section id="createSection" class="section">
+            <h2>Create New Post</h2>
+            <form id="createPostForm" class="post-form">
+              <div class="form-group">
+                <label for="postTitle">Title *</label>
+                <input type="text" id="postTitle" name="title" required>
+              </div>
+
+              <div class="form-group">
+                <label for="postContent">Content *</label>
+                <textarea id="postContent" name="content" rows="8" required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="postImage">Image (optional)</label>
+                <input type="file" id="postImage" name="image" accept="image/*">
+                <div id="imagePreview" class="image-preview"></div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="postStartTime">Start Time *</label>
+                  <input type="datetime-local" id="postStartTime" name="startTime" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="postEndTime">End Time *</label>
+                  <input type="datetime-local" id="postEndTime" name="endTime" required>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Create Post</button>
+                <button type="reset" class="btn btn-secondary">Clear</button>
+              </div>
+
+              <div class="error-message" id="createError"></div>
+              <div class="success-message" id="createSuccess"></div>
+            </form>
+          </section>
+
+          <!-- Edit Post Modal -->
+          <div id="editModal" class="modal" style="display: none;">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3>Edit Post</h3>
+                <button class="close-btn" id="closeEditModal">&times;</button>
+              </div>
+              <form id="editPostForm" class="post-form">
+                <div class="form-group">
+                  <label for="editPostTitle">Title *</label>
+                  <input type="text" id="editPostTitle" name="title" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="editPostContent">Content *</label>
+                  <textarea id="editPostContent" name="content" rows="6" required></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="editPostImage">Image (optional)</label>
+                  <input type="file" id="editPostImage" name="image" accept="image/*">
+                  <div id="editImagePreview" class="image-preview"></div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="editPostStartTime">Start Time *</label>
+                    <input type="datetime-local" id="editPostStartTime" name="startTime" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="editPostEndTime">End Time *</label>
+                    <input type="datetime-local" id="editPostEndTime" name="endTime" required>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">Update Post</button>
+                  <button type="button" class="btn btn-danger" id="deletePostBtn">Delete Post</button>
+                </div>
+
+                <div class="error-message" id="editError"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
