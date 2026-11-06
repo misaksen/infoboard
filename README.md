@@ -13,6 +13,26 @@ A simple, containerized infoboard system for displaying time-bound posts/announc
 - 💾 **SQLite Database** - Simple, file-based storage
 - 🖼️ **Image Support** - Upload and display images with posts
 
+## Screenshots
+
+### Display Page
+
+The public-facing display shows active posts with navigation controls and an auto-advance timer.
+
+![Display page](docs/screenshots/display.png)
+
+### Admin Dashboard
+
+Manage all posts from a central list, with quick access to edit or create new ones.
+
+![Admin posts list](docs/screenshots/admin-posts.png)
+
+### Create Post
+
+Create a new post with a title, content, optional image, and a visibility time window.
+
+![Create post form](docs/screenshots/admin-create-post.png)
+
 ## Quick Start
 
 ### Local Development (Docker Compose)
@@ -312,6 +332,8 @@ infoboard/
 │   ├── configmap.yaml
 │   └── secret.yaml
 ├── data/                   # Volume mount point
+├── docs/
+│   └── screenshots/        # README screenshots
 ├── Dockerfile
 ├── docker-compose.yml
 ├── package.json
