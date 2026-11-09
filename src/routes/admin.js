@@ -3,11 +3,24 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const { getDb } = require('../db/init');
 const { generateToken } = require('../utils/jwt');
 const { authenticateToken } = require('../middleware/auth');
+const {
+  completeAuthorization,
+  getAuthorizationUrl,
+  isKeycloakEnabled
+} = require('../utils/keycloak');
 
 const router = express.Router();
+const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts. Try again later.' }
+});
 
 const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../../data/uploads');
 
@@ -38,7 +51,57 @@ const upload = multer({
 });
 
 // Login endpoint
-router.post('/login', (req, res) => {
+router.get('/login', authRateLimit, async (req, res, next) => {
+  if (!isKeycloakEnabled()) {
+    return res.status(404).json({ error: 'Keycloak login is not configured' });
+  }
+
+  try {
+    const { url, state } = await getAuthorizationUrl();
+    const secure = process.env.KEYCLOAK_CALLBACK_URL.startsWith('https://');
+    res.cookie('keycloak_state', state, {
+      httpOnly: true,
+      secure,
+      sameSite: 'lax',
+      path: '/api/admin/callback',
+      maxAge: 10 * 60 * 1000
+    });
+    res.redirect(url);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/callback', authRateLimit, async (req, res, next) => {
+  const cookieOptions = {
+    httpOnly: true,
+    secure: (process.env.KEYCLOAK_CALLBACK_URL || '').startsWith('https://'),
+    sameSite: 'lax',
+    path: '/api/admin/callback'
+  };
+  try {
+    const user = await completeAuthorization(req);
+    const token = generateToken(user.id, user.username, 'keycloak');
+    res.clearCookie('keycloak_state', cookieOptions);
+    res.redirect(`/admin#token=${encodeURIComponent(token)}`);
+  } catch (err) {
+    res.clearCookie('keycloak_state', cookieOptions);
+    if (err.message === 'User is not a member of an allowed Keycloak group') {
+      return res.status(403).send('You are not allowed to access this application.');
+    }
+    next(err);
+  }
+});
+
+router.get('/auth/config', (req, res) => {
+  res.json({ keycloakEnabled: isKeycloakEnabled() });
+});
+
+router.post('/login', authRateLimit, (req, res) => {
+  if (isKeycloakEnabled()) {
+    return res.status(403).json({ error: 'Sign in through Keycloak' });
+  }
+
   const { username, password } = req.body;
   
   if (!username || !password) {
@@ -60,7 +123,7 @@ router.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    const token = generateToken(user.id);
+    const token = generateToken(user.id, user.username);
     res.json({ token, userId: user.id });
   });
 });
@@ -131,8 +194,8 @@ router.post('/posts', authenticateToken, upload.single('image'), (req, res) => {
   const db = getDb();
   
   db.run(
-    'INSERT INTO posts (title, content, image_path, start_time, end_time) VALUES (?, ?, ?, ?, ?)',
-    [title, content, imagePath, startTime, endTime],
+    'INSERT INTO posts (title, content, image_path, start_time, end_time, created_by) VALUES (?, ?, ?, ?, ?, ?)',
+    [title, content, imagePath, startTime, endTime, req.userName || String(req.userId)],
     function(err) {
       if (err) {
         if (req.file) {

@@ -6,7 +6,7 @@ A simple, containerized infoboard system for displaying time-bound posts/announc
 
 - 🖥️ **Admin Dashboard** - Create, edit, and delete posts with optional images
 - ⏰ **Time-based Display** - Posts automatically show/hide based on start and end times
-- 🔐 **Password Protected** - JWT-based authentication for admin access
+- 🔐 **Protected Admin Access** - Local password login or Keycloak OIDC with group restrictions
 - 📱 **Responsive Design** - Works on desktop, tablet, and mobile
 - 🐳 **Docker Ready** - Containerized for easy deployment
 - ☸️ **Kubernetes Ready** - Complete K8s manifests included
@@ -73,10 +73,21 @@ PORT=3000
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin123
 JWT_SECRET=your-secret-key-change-in-production
+KEYCLOAK_ISSUER=
+KEYCLOAK_CLIENT_ID=
+KEYCLOAK_CLIENT_SECRET=
+KEYCLOAK_CALLBACK_URL=
+KEYCLOAK_ALLOWED_GROUPS=
 DB_PATH=./data/infoboard.db
 UPLOAD_DIR=./data/uploads
 POST_CACHE_TTL=300000
 ```
+
+### Keycloak login
+
+Set `KEYCLOAK_ISSUER` to the realm issuer URL (for example, `https://keycloak.example/realms/infoboard`), and configure the Keycloak client ID, optional client secret, and callback URL (`https://infoboard.example/api/admin/callback`). Set `KEYCLOAK_ALLOWED_GROUPS` to a comma-separated list of exact Keycloak group names or paths, such as `/infoboard-editors,/communications`.
+
+Configure the Keycloak client for the authorization-code flow, add the callback URL to its valid redirect URIs, and map the user's groups to a `groups` claim in the ID token or UserInfo response. Once Keycloak is configured, password login is disabled and users without a matching group are denied access. When Keycloak settings are empty, the existing local admin login remains available.
 
 ### Custom CA certificates in Docker
 
@@ -230,6 +241,7 @@ SQLite database is stored in `/data/infoboard.db` (or path specified in `DB_PATH
 - `created_at` - Creation timestamp
 - `updated_at` - Last update timestamp
 - `active` - Whether post is active
+- `created_by` - Username of the authenticated user who created the post
 
 **Admin Users Table:**
 - `id` - Primary key

@@ -31,32 +31,42 @@ function initializeDb() {
           reject(err);
         } else {
           console.log('Database schema initialized');
-          
-          // Create default admin user if it doesn't exist
-          const defaultUsername = process.env.ADMIN_USERNAME || 'admin';
-          const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
-          
-          db.get('SELECT * FROM admin_users WHERE username = ?', [defaultUsername], (err, row) => {
-            if (err) {
-              reject(err);
-            } else if (!row) {
-              const hashedPassword = bcrypt.hashSync(defaultPassword, 10);
-              db.run(
-                'INSERT INTO admin_users (username, password_hash) VALUES (?, ?)',
-                [defaultUsername, hashedPassword],
-                (err) => {
-                  if (err) {
-                    reject(err);
-                  } else {
-                    console.log(`Default admin user created: ${defaultUsername}`);
-                    resolve(db);
-                  }
+          db.all('PRAGMA table_info(posts)', (err, columns) => {
+            if (err) return reject(err);
+            const hasCreatedBy = columns.some(column => column.name === 'created_by');
+            const createDefaultAdmin = () => {
+              const defaultUsername = process.env.ADMIN_USERNAME || 'admin';
+              const defaultPassword = process.env.ADMIN_PASSWORD || 'admin123';
+
+              db.get('SELECT * FROM admin_users WHERE username = ?', [defaultUsername], (err, row) => {
+                if (err) {
+                  reject(err);
+                } else if (!row) {
+                  const hashedPassword = bcrypt.hashSync(defaultPassword, 10);
+                  db.run(
+                    'INSERT INTO admin_users (username, password_hash) VALUES (?, ?)',
+                    [defaultUsername, hashedPassword],
+                    (err) => {
+                      if (err) {
+                        reject(err);
+                      } else {
+                        console.log('Default admin user created');
+                        resolve(db);
+                      }
+                    }
+                  );
+                } else {
+                  console.log('Admin user already exists');
+                  resolve(db);
                 }
-              );
-            } else {
-              console.log('Admin user already exists');
-              resolve(db);
-            }
+              });
+            };
+
+            if (hasCreatedBy) return createDefaultAdmin();
+            db.run('ALTER TABLE posts ADD COLUMN created_by TEXT', err => {
+              if (err) return reject(err);
+              createDefaultAdmin();
+            });
           });
         }
       });
