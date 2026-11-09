@@ -78,6 +78,17 @@ UPLOAD_DIR=./data/uploads
 POST_CACHE_TTL=300000
 ```
 
+### Custom CA certificates in Docker
+
+To trust a custom CA in the Docker image, place its PEM-encoded certificate(s) in the `certs/` directory with a `.crt` extension, then rebuild the image. For example:
+
+```bash
+cp your-ca-bundle.crt certs/custom-ca.crt
+docker build -t infoboard:latest .
+```
+
+The image adds these certificates to the system trust store and makes that trust bundle available to Node.js.
+
 ## API Endpoints
 
 ### Public Endpoints
