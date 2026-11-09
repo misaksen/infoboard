@@ -1,8 +1,15 @@
 class InfoboardAdmin {
   constructor() {
+    const tokenFromCallback = new URLSearchParams(window.location.hash.slice(1)).get('token');
+    if (tokenFromCallback) {
+      localStorage.setItem('adminToken', tokenFromCallback);
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     this.token = localStorage.getItem('adminToken');
     this.currentEditId = null;
     this.currentPage = 1;
+    this.setupLoginOptions();
     
     if (this.token) {
       this.showDashboard();
@@ -66,6 +73,17 @@ class InfoboardAdmin {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
       searchInput.addEventListener('input', () => this.handleSearch());
+    }
+  }
+
+  async setupLoginOptions() {
+    try {
+      const response = await fetch('/api/admin/auth/config');
+      const config = await response.json();
+      document.getElementById('loginForm').style.display = config.keycloakEnabled ? 'none' : '';
+      document.getElementById('keycloakLogin').style.display = config.keycloakEnabled ? 'inline-block' : 'none';
+    } catch (err) {
+      console.error('Failed to load authentication configuration:', err);
     }
   }
 
@@ -137,6 +155,10 @@ class InfoboardAdmin {
       });
       
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          this.handleLogout();
+          return;
+        }
         throw new Error('Failed to load posts');
       }
       
@@ -165,6 +187,7 @@ class InfoboardAdmin {
           <div class="post-time">
             ${new Date(post.start_time).toLocaleString()} → ${new Date(post.end_time).toLocaleString()}
           </div>
+          <div class="post-meta">Created by: ${this.escapeHtml(post.created_by || 'Unknown')}</div>
         </div>
         <div class="post-actions" onclick="event.stopPropagation();">
           <button class="btn btn-secondary" onclick="admin.editPost(${post.id})">Edit</button>

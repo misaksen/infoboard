@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS posts (
   end_time DATETIME NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  active BOOLEAN DEFAULT 1
+  active BOOLEAN DEFAULT 1,
+  created_by TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_posts_start_time ON posts(start_time);

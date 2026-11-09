@@ -41,6 +41,36 @@ spec:
             secretKeyRef:
               name: infoboard-secret
               key: jwt-secret
+        - name: KEYCLOAK_ISSUER
+          valueFrom:
+            configMapKeyRef:
+              name: infoboard-config
+              key: keycloak.issuer
+              optional: true
+        - name: KEYCLOAK_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: infoboard-config
+              key: keycloak.client-id
+              optional: true
+        - name: KEYCLOAK_CALLBACK_URL
+          valueFrom:
+            configMapKeyRef:
+              name: infoboard-config
+              key: keycloak.callback-url
+              optional: true
+        - name: KEYCLOAK_ALLOWED_GROUPS
+          valueFrom:
+            configMapKeyRef:
+              name: infoboard-config
+              key: keycloak.allowed-groups
+              optional: true
+        - name: KEYCLOAK_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: infoboard-secret
+              key: keycloak-client-secret
+              optional: true
         - name: DB_PATH
           value: /data/infoboard.db
         - name: UPLOAD_DIR
