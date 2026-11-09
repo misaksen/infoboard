@@ -89,6 +89,17 @@ Set `KEYCLOAK_ISSUER` to the realm issuer URL (for example, `https://keycloak.ex
 
 Configure the Keycloak client for the authorization-code flow, add the callback URL to its valid redirect URIs, and map the user's groups to a `groups` claim in the ID token or UserInfo response. Once Keycloak is configured, password login is disabled and users without a matching group are denied access. When Keycloak settings are empty, the existing local admin login remains available.
 
+### Custom CA certificates in Docker
+
+To trust a custom CA in the Docker image, place its PEM-encoded certificate(s) in the `certs/` directory with a `.crt` extension, then rebuild the image. For example:
+
+```bash
+cp your-ca-bundle.crt certs/custom-ca.crt
+docker build -t infoboard:latest .
+```
+
+The image adds these certificates to the system trust store and makes that trust bundle available to Node.js.
+
 ## API Endpoints
 
 ### Public Endpoints
