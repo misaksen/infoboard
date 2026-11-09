@@ -2,6 +2,14 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Import optional custom CA certificates
+RUN apk add --no-cache ca-certificates openssl
+COPY certs/ /usr/local/share/ca-certificates/
+RUN update-ca-certificates -f \
+  && cat /etc/ssl/certs/ca-certificates.crt > /usr/local/share/ca-certificates/custom-ca-bundle.pem \
+  && find /usr/local/share/ca-certificates -type f -name '*.crt' -exec cat {} + >> /usr/local/share/ca-certificates/custom-ca-bundle.pem
+ENV NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/custom-ca-bundle.pem
+
 # Copy package files
 COPY package*.json ./
 
