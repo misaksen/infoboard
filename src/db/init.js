@@ -50,7 +50,7 @@ function initializeDb() {
                       if (err) {
                         reject(err);
                       } else {
-                        console.log(`Default admin user created: ${defaultUsername}`);
+                        console.log('Default admin user created');
                         resolve(db);
                       }
                     }

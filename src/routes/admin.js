@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const { getDb } = require('../db/init');
 const { generateToken } = require('../utils/jwt');
 const { authenticateToken } = require('../middleware/auth');
@@ -13,6 +14,13 @@ const {
 } = require('../utils/keycloak');
 
 const router = express.Router();
+const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts. Try again later.' }
+});
 
 const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../../data/uploads');
 
@@ -43,7 +51,7 @@ const upload = multer({
 });
 
 // Login endpoint
-router.get('/login', async (req, res, next) => {
+router.get('/login', authRateLimit, async (req, res, next) => {
   if (!isKeycloakEnabled()) {
     return res.status(404).json({ error: 'Keycloak login is not configured' });
   }
@@ -64,7 +72,7 @@ router.get('/login', async (req, res, next) => {
   }
 });
 
-router.get('/callback', async (req, res, next) => {
+router.get('/callback', authRateLimit, async (req, res, next) => {
   const cookieOptions = {
     httpOnly: true,
     secure: (process.env.KEYCLOAK_CALLBACK_URL || '').startsWith('https://'),
@@ -89,7 +97,7 @@ router.get('/auth/config', (req, res) => {
   res.json({ keycloakEnabled: isKeycloakEnabled() });
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', authRateLimit, (req, res) => {
   if (isKeycloakEnabled()) {
     return res.status(403).json({ error: 'Sign in through Keycloak' });
   }
